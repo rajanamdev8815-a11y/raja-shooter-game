@@ -1,536 +1,622 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Mobile Shooter</title>
-  <style>
-    :root {
-      --bg1: #0f172a;
-      --bg2: #111827;
-      --panel: rgba(15, 23, 42, 0.8);
-      --accent: #38bdf8;
-      --danger: #ef4444;
-      --success: #22c55e;
-      --text: #e5e7eb;
-      --warning: #fbbf24;
-      --shadow: rgba(0,0,0,0.25);
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
+    <title>My AI Chatbot</title>
 
-    html, body {
-      margin: 0;
-      height: 100%;
-      background: linear-gradient(180deg, var(--bg1), var(--bg2));
-      font-family: Arial, Helvetica, sans-serif;
-      color: var(--text);
-      overflow: hidden;
-    }
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
 
-    .game-shell {
-      width: min(100vw, 440px);
-      height: 100vh;
-      max-height: 900px;
-      position: relative;
-      background: linear-gradient(180deg, #0f172a, #111827);
-      box-shadow: 0 16px 45px rgba(0,0,0,0.35);
-      overflow: hidden;
-    }
+        .chat-container {
+            width: 100%;
+            max-width: 450px;
+            height: 650px;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+            display: flex;
+            flex-direction: column;
+        }
 
-    .hud {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      z-index: 10;
-      background: rgba(15, 23, 42, 0.35);
-      backdrop-filter: blur(4px);
-    }
+        /* Header */
+        .chat-header {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
 
-    .hud-item {
-      font-weight: 700;
-      font-size: 18px;
-      letter-spacing: 0.04em;
-    }
+        .bot-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-    .health-bar {
-      width: 110px;
-      height: 14px;
-      background: rgba(255,255,255,0.12);
-      border: 2px solid rgba(255,255,255,0.2);
-      border-radius: 20px;
-      overflow: hidden;
-      position: relative;
-    }
+        .bot-icon {
+            width: 45px;
+            height: 45px;
+            background: white;
+            color: #4f46e5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 25px;
+        }
 
-    .health-fill {
-      position: absolute;
-      inset: 0 auto 0 0;
-      width: 100%;
-      background: linear-gradient(90deg, var(--success), #86efac);
-      border-radius: 20px;
-      transition: width 0.15s ease;
-    }
+        .bot-name {
+            font-size: 18px;
+            font-weight: bold;
+        }
 
-    #gameCanvas {
-      display: block;
-      width: 100%;
-      height: 100%;
-      background:
-        linear-gradient(180deg, rgba(59,130,246,0.08), rgba(15,23,42,0)),
-        radial-gradient(circle at top, rgba(56,189,248,0.15), transparent 40%);
-      touch-action: none;
-    }
+        .online {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-top: 3px;
+        }
 
-    .controls {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      padding: 16px;
-      pointer-events: none;
-      z-index: 12;
-    }
+        .clear-btn {
+            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 9px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
 
-    .move-pad,
-    .shoot-pad {
-      display: flex;
-      gap: 10px;
-      pointer-events: auto;
-    }
+        .clear-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+        }
 
-    .control-btn {
-      width: 66px;
-      height: 66px;
-      border: none;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.12);
-      color: white;
-      font-size: 28px;
-      font-weight: 700;
-      box-shadow: 0 8px 18px rgba(0,0,0,0.2);
-      user-select: none;
-      touch-action: manipulation;
-    }
+        /* Chat messages */
+        .chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f7f7fb;
+        }
 
-    .control-btn:active {
-      transform: scale(0.96);
-    }
+        .message {
+            display: flex;
+            margin-bottom: 15px;
+        }
 
-    .shoot-btn {
-      width: 82px;
-      height: 82px;
-      background: rgba(239,68,68,0.78);
-      font-size: 30px;
-      border: 2px solid rgba(255,255,255,0.3);
-    }
+        .message.bot {
+            justify-content: flex-start;
+        }
 
-    .restart-wrap {
-      position: absolute;
-      inset: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      background: rgba(15, 23, 42, 0.45);
-      z-index: 20;
-    }
+        .message.user {
+            justify-content: flex-end;
+        }
 
-    .restart-wrap.visible {
-      display: flex;
-    }
+        .message-content {
+            max-width: 80%;
+            padding: 12px 15px;
+            border-radius: 15px;
+            line-height: 1.5;
+            font-size: 14px;
+        }
 
-    .panel {
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 18px;
-      text-align: center;
-      padding: 22px 26px;
-      box-shadow: 0 18px 50px rgba(0,0,0,0.3);
-    }
+        .bot .message-content {
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
 
-    .panel h2 {
-      margin: 0 0 10px;
-      font-size: 26px;
-      color: #f8fafc;
-    }
+        .user .message-content {
+            background: #4f46e5;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
 
-    .panel p {
-      margin: 0 0 16px;
-      font-size: 18px;
-      color: #dbeafe;
-    }
+        .time {
+            display: block;
+            font-size: 10px;
+            margin-top: 5px;
+            opacity: 0.6;
+        }
 
-    .restart-btn {
-      border: none;
-      border-radius: 12px;
-      background: linear-gradient(180deg, var(--accent), #0284c7);
-      color: white;
-      padding: 14px 26px;
-      font-size: 18px;
-      font-weight: 700;
-      box-shadow: 0 8px 18px rgba(14,165,233,0.35);
-    }
-  </style>
+        /* Typing */
+        .typing {
+            display: none;
+            margin-bottom: 15px;
+        }
+
+        .typing span {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            background: #777;
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: typing 1.2s infinite;
+        }
+
+        .typing span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+
+            30% {
+                transform: translateY(-6px);
+            }
+        }
+
+        /* Quick buttons */
+        .quick-buttons {
+            padding: 10px 15px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            background: white;
+        }
+
+        .quick-buttons button {
+            white-space: nowrap;
+            border: 1px solid #ddd;
+            background: #fff;
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .quick-buttons button:hover {
+            background: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+        }
+
+        /* Input */
+        .chat-input {
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid #eee;
+            background: white;
+        }
+
+        .chat-input input {
+            flex: 1;
+            border: 1px solid #ddd;
+            outline: none;
+            padding: 13px 15px;
+            border-radius: 25px;
+            font-size: 14px;
+        }
+
+        .chat-input input:focus {
+            border-color: #4f46e5;
+        }
+
+        .send-btn {
+            width: 48px;
+            height: 48px;
+            border: none;
+            border-radius: 50%;
+            background: #4f46e5;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .send-btn:hover {
+            background: #3730a3;
+        }
+
+        /* Mobile */
+        @media (max-width: 500px) {
+            body {
+                padding: 0;
+            }
+
+            .chat-container {
+                height: 100vh;
+                max-width: 100%;
+                border-radius: 0;
+            }
+        }
+    </style>
 </head>
+
 <body>
-  <div class="game-shell">
-    <div class="hud">
-      <div class="hud-item">Score: <span id="score">0</span></div>
-      <div class="health-bar" aria-label="Player health">
-        <div id="healthFill" class="health-fill"></div>
-      </div>
+
+    <div class="chat-container">
+
+        <!-- Header -->
+        <div class="chat-header">
+
+            <div class="bot-info">
+                <div class="bot-icon">🤖</div>
+
+                <div>
+                    <div class="bot-name">My AI Assistant</div>
+                    <div class="online">● Online</div>
+                </div>
+            </div>
+
+            <button class="clear-btn" onclick="clearChat()">
+                Clear
+            </button>
+
+        </div>
+
+
+        <!-- Chat Messages -->
+        <div class="chat-box" id="chatBox">
+
+            <div class="message bot">
+                <div class="message-content">
+                    👋 Hello! I am your AI Assistant.
+                    <br><br>
+                    How can I help you today?
+                    <span class="time">Now</span>
+                </div>
+            </div>
+
+            <!-- Typing animation -->
+            <div class="typing" id="typing">
+                <div class="message-content">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- Quick Questions -->
+        <div class="quick-buttons">
+
+            <button onclick="quickMessage('What is AI?')">
+                🤖 What is AI?
+            </button>
+
+            <button onclick="quickMessage('What is HTML?')">
+                💻 What is HTML?
+            </button>
+
+            <button onclick="quickMessage('What is Python?')">
+                🐍 Python
+            </button>
+
+            <button onclick="quickMessage('Tell me a joke')">
+                😂 Joke
+            </button>
+
+        </div>
+
+
+        <!-- Input -->
+        <div class="chat-input">
+
+            <input
+                type="text"
+                id="userInput"
+                placeholder="Type your message..."
+                autocomplete="off"
+            >
+
+            <button class="send-btn" onclick="sendMessage()">
+                ➤
+            </button>
+
+        </div>
+
     </div>
 
-    <canvas id="gameCanvas" width="420" height="760"></canvas>
 
-    <div class="controls">
-      <div class="move-pad">
-        <button class="control-btn" id="leftBtn" aria-label="Move left">◀</button>
-        <button class="control-btn" id="rightBtn" aria-label="Move right">▶</button>
-      </div>
+    <script>
 
-      <div class="shoot-pad">
-        <button class="control-btn shoot-btn" id="shootBtn" aria-label="Shoot">✦</button>
-      </div>
-    </div>
+        const chatBox = document.getElementById("chatBox");
+        const userInput = document.getElementById("userInput");
+        const typing = document.getElementById("typing");
 
-    <div id="restartWrap" class="restart-wrap">
-      <div class="panel">
-        <h2>Game Over</h2>
-        <p>Final Score: <span id="finalScore">0</span></p>
-        <button id="restartBtn" class="restart-btn">Restart</button>
-      </div>
-    </div>
-  </div>
 
-  <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
+        // Send message when Enter is pressed
+        userInput.addEventListener("keydown", function(event) {
 
-    const scoreEl = document.getElementById("score");
-    const healthFill = document.getElementById("healthFill");
-    const restartWrap = document.getElementById("restartWrap");
-    const finalScoreEl = document.getElementById("finalScore");
-    const restartBtn = document.getElementById("restartBtn");
+            if (event.key === "Enter") {
+                sendMessage();
+            }
 
-    const leftBtn = document.getElementById("leftBtn");
-    const rightBtn = document.getElementById("rightBtn");
-    const shootBtn = document.getElementById("shootBtn");
-
-    const game = {
-      width: canvas.width,
-      height: canvas.height,
-      running: true,
-      score: 0,
-      maxHealth: 100,
-      health: 100,
-      spawnTimer: 0,
-      lastTime: 0,
-      enemySpeed: 1.8,
-      keys: {
-        left: false,
-        right: false
-      },
-      firePressed: false
-    };
-
-    const player = {
-      x: game.width / 2 - 22,
-      y: game.height - 90,
-      w: 44,
-      h: 26,
-      speed: 5,
-      color: "#38bdf8",
-      cooldown: 0
-    };
-
-    const bullets = [];
-    const enemies = [];
-    const particles = [];
-
-    function resetGame() {
-      game.running = true;
-      game.score = 0;
-      game.health = game.maxHealth;
-      game.spawnTimer = 0;
-      game.enemySpeed = 1.8;
-      player.x = game.width / 2 - player.w / 2;
-      player.y = game.height - 90;
-      player.cooldown = 0;
-      bullets.length = 0;
-      enemies.length = 0;
-      particles.length = 0;
-      scoreEl.textContent = "0";
-      healthFill.style.width = "100%";
-      restartWrap.classList.remove("visible");
-      finalScoreEl.textContent = "0";
-    }
-
-    function clamp(value, min, max) {
-      return Math.min(max, Math.max(min, value));
-    }
-
-    function spawnEnemy() {
-      const size = 22 + Math.random() * 18;
-      enemies.push({
-        x: Math.random() * (game.width - size),
-        y: -size,
-        w: size,
-        h: size,
-        speed: 1.5 + Math.random() * 1.8 + game.enemySpeed * 0.15,
-        color: `hsl(${Math.random() * 40 + 8}, 80%, 60%)`,
-        hitFlash: 0
-      });
-    }
-
-    function shoot() {
-      if (!game.running) return;
-      if (player.cooldown > 0) return;
-
-      bullets.push({
-        x: player.x + player.w / 2 - 3,
-        y: player.y - 14,
-        w: 6,
-        h: 14,
-        speed: 9,
-        color: "#fbbf24"
-      });
-
-      player.cooldown = 180;
-    }
-
-    function createParticles(x, y, color, amount = 10) {
-      for (let i = 0; i < amount; i++) {
-        particles.push({
-          x,
-          y,
-          vx: (Math.random() - 0.5) * 5,
-          vy: (Math.random() - 0.5) * 5,
-          r: 2 + Math.random() * 3,
-          color,
-          alpha: 1
         });
-      }
-    }
 
-    function hitPlayer() {
-      game.health -= 15;
-      if (game.health <= 0) {
-        game.health = 0;
-        endGame();
-      }
-      healthFill.style.width = `${(game.health / game.maxHealth) * 100}%`;
-    }
 
-    function endGame() {
-      game.running = false;
-      finalScoreEl.textContent = game.score;
-      restartWrap.classList.add("visible");
-    }
+        // Get current time
+        function getTime() {
 
-    function update(dt) {
-      if (!game.running) return;
+            const now = new Date();
 
-      if (game.keys.left) {
-        player.x -= player.speed * dt;
-      }
-      if (game.keys.right) {
-        player.x += player.speed * dt;
-      }
+            return now.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit"
+            });
 
-      player.x = clamp(player.x, 0, game.width - player.w);
-      player.cooldown = Math.max(0, player.cooldown - dt);
-
-      if (game.firePressed) shoot();
-
-      game.spawnTimer += dt;
-      if (game.spawnTimer > 700) {
-        spawnEnemy();
-        game.spawnTimer = 0;
-      }
-
-      for (let i = bullets.length - 1; i >= 0; i--) {
-        const b = bullets[i];
-        b.y -= b.speed * (dt / 16.67);
-
-        if (b.y + b.h < 0) {
-          bullets.splice(i, 1);
-        }
-      }
-
-      for (let i = enemies.length - 1; i >= 0; i--) {
-        const e = enemies[i];
-        e.y += e.speed * (dt / 16.67);
-
-        if (
-          e.x < player.x + player.w &&
-          e.x + e.w > player.x &&
-          e.y < player.y + player.h &&
-          e.y + e.h > player.y
-        ) {
-          createParticles(e.x + e.w / 2, e.y + e.h / 2, "#ef4444", 18);
-          enemies.splice(i, 1);
-          hitPlayer();
-          continue;
         }
 
-        if (e.y > game.height + 30) {
-          enemies.splice(i, 1);
-          if (game.running) {
-            hitPlayer();
-          }
-          continue;
+
+        // Add message to chat
+        function addMessage(message, sender) {
+
+            const messageDiv = document.createElement("div");
+
+            messageDiv.className = "message " + sender;
+
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    ${message}
+                    <span class="time">${getTime()}</span>
+                </div>
+            `;
+
+            chatBox.insertBefore(messageDiv, typing);
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+
         }
 
-        for (let j = bullets.length - 1; j >= 0; j--) {
-          const b = bullets[j];
-          if (
-            b.x < e.x + e.w &&
-            b.x + b.w > e.x &&
-            b.y < e.y + e.h &&
-            b.y + b.h > e.y
-          ) {
-            bullets.splice(j, 1);
-            enemies.splice(i, 1);
-            game.score += 10;
-            scoreEl.textContent = game.score;
-            createParticles(e.x + e.w / 2, e.y + e.h / 2, "#facc15", 12);
-            break;
-          }
+
+        // Send user message
+        function sendMessage() {
+
+            const message = userInput.value.trim();
+
+            if (message === "") {
+                return;
+            }
+
+            addMessage(message, "user");
+
+            userInput.value = "";
+
+            showTyping();
+
+            setTimeout(function() {
+
+                hideTyping();
+
+                const response = getBotResponse(message);
+
+                addMessage(response, "bot");
+
+            }, 1000);
+
         }
-      }
 
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.x += p.vx * (dt / 16.67);
-        p.y += p.vy * (dt / 16.67);
-        p.alpha -= 0.02;
-        if (p.alpha <= 0) particles.splice(i, 1);
-      }
 
-      game.enemySpeed = 1.8 + game.score / 200;
-    }
+        // Quick message
+        function quickMessage(message) {
 
-    function draw() {
-      ctx.clearRect(0, 0, game.width, game.height);
+            userInput.value = message;
 
-      for (let i = 0; i < 40; i++) {
-        const sx = (i * 73) % game.width;
-        const sy = (i * 97) % game.height;
-        ctx.fillStyle = `rgba(255,255,255,${0.2 + (i % 5) * 0.12})`;
-        ctx.fillRect(sx, sy, 2, 2);
-      }
+            sendMessage();
 
-      ctx.fillStyle = player.color;
-      ctx.fillRect(player.x, player.y, player.w, player.h);
+        }
 
-      for (const b of bullets) {
-        ctx.fillStyle = b.color;
-        ctx.fillRect(b.x, b.y, b.w, b.h);
-      }
 
-      for (const e of enemies) {
-        ctx.fillStyle = e.color;
-        ctx.fillRect(e.x, e.y, e.w, e.h);
-      }
+        // Show typing
+        function showTyping() {
 
-      for (const p of particles) {
-        let alphaHex = Math.round(p.alpha * 255).toString(16).padStart(2, "0");
-        ctx.fillStyle = p.color.startsWith("#") ? p.color + alphaHex : p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
+            typing.style.display = "block";
 
-    function gameLoop(timestamp) {
-      const dt = Math.min(40, timestamp - (game.lastTime || timestamp));
-      game.lastTime = timestamp;
+            chatBox.scrollTop = chatBox.scrollHeight;
 
-      update(dt);
-      draw();
+        }
 
-      requestAnimationFrame(gameLoop);
-    }
 
-    window.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowLeft" || e.key.toLowerCase() === "a") game.keys.left = true;
-      if (e.key === "ArrowRight" || e.key.toLowerCase() === "d") game.keys.right = true;
-      if (e.key === " " || e.key === "ArrowUp" || e.key.toLowerCase() === "w") {
-        e.preventDefault();
-        game.firePressed = true;
-      }
-    });
+        // Hide typing
+        function hideTyping() {
 
-    window.addEventListener("keyup", (e) => {
-      if (e.key === "ArrowLeft" || e.key.toLowerCase() === "a") game.keys.left = false;
-      if (e.key === "ArrowRight" || e.key.toLowerCase() === "d") game.keys.right = false;
-      if (e.key === " " || e.key === "ArrowUp" || e.key.toLowerCase() === "w") {
-        game.firePressed = false;
-      }
-    });
+            typing.style.display = "none";
 
-    function bindPress(control, keyName) {
-      control.addEventListener("pointerdown", (e) => {
-        e.preventDefault();
-        if (keyName === "left") game.keys.left = true;
-        if (keyName === "right") game.keys.right = true;
-        if (keyName === "shoot") game.firePressed = true;
-      });
+        }
 
-      control.addEventListener("pointerup", () => {
-        if (keyName === "left") game.keys.left = false;
-        if (keyName === "right") game.keys.right = false;
-        if (keyName === "shoot") game.firePressed = false;
-      });
 
-      control.addEventListener("pointerleave", () => {
-        if (keyName === "left") game.keys.left = false;
-        if (keyName === "right") game.keys.right = false;
-        if (keyName === "shoot") game.firePressed = false;
-      });
-    }
+        // Chatbot responses
+        function getBotResponse(message) {
 
-    bindPress(leftBtn, "left");
-    bindPress(rightBtn, "right");
-    bindPress(shootBtn, "shoot");
+            const text = message.toLowerCase();
 
-    canvas.addEventListener("pointerdown", (e) => {
-      e.preventDefault();
-      game.firePressed = true;
-    });
 
-    canvas.addEventListener("pointerup", () => {
-      game.firePressed = false;
-    });
+            if (
+                text.includes("hello") ||
+                text.includes("hi") ||
+                text.includes("hey")
+            ) {
 
-    canvas.addEventListener("pointerleave", () => {
-      game.firePressed = false;
-    });
+                return "👋 Hello! Nice to meet you. How can I help you?";
 
-    restartBtn.addEventListener("click", () => {
-      resetGame();
-    });
+            }
 
-    resetGame();
-    requestAnimationFrame(gameLoop);
-  </script>
+
+            if (text.includes("ai") ||
+                text.includes("artificial intelligence")) {
+
+                return `
+                    🤖 <b>AI (Artificial Intelligence)</b> is a technology
+                    that allows computers to perform tasks that normally
+                    require human intelligence.
+                    <br><br>
+                    Examples: ChatGPT, voice assistants, recommendation
+                    systems and image recognition.
+                `;
+
+            }
+
+
+            if (text.includes("html")) {
+
+                return `
+                    💻 <b>HTML</b> stands for HyperText Markup Language.
+                    <br><br>
+                    It is used to create the structure of websites.
+                    For example, headings, paragraphs, images, buttons
+                    and forms.
+                `;
+
+            }
+
+
+            if (text.includes("python")) {
+
+                return `
+                    🐍 <b>Python</b> is a popular programming language.
+                    <br><br>
+                    It is commonly used for Web Development, Data Science,
+                    AI, Machine Learning and Automation.
+                `;
+
+            }
+
+
+            if (text.includes("css")) {
+
+                return `
+                    🎨 <b>CSS</b> stands for Cascading Style Sheets.
+                    <br><br>
+                    CSS is used to make websites beautiful by controlling
+                    colors, fonts, spacing, layouts and animations.
+                `;
+
+            }
+
+
+            if (
+                text.includes("javascript") ||
+                text.includes("js")
+            ) {
+
+                return `
+                    ⚡ <b>JavaScript</b> is a programming language used
+                    to make websites interactive.
+                    <br><br>
+                    It can handle buttons, forms, animations, APIs and
+                    dynamic content.
+                `;
+
+            }
+
+
+            if (
+                text.includes("github") ||
+                text.includes("github pages")
+            ) {
+
+                return `
+                    🚀 <b>GitHub Pages</b> is a service that can host
+                    static websites directly from a GitHub repository.
+                    <br><br>
+                    You can host HTML, CSS and JavaScript websites
+                    without purchasing separate hosting.
+                `;
+
+            }
+
+
+            if (
+                text.includes("joke") ||
+                text.includes("funny")
+            ) {
+
+                return `
+                    😂 Why did the programmer quit his job?
+                    <br><br>
+                    Because he didn't get enough <b>arrays</b>! 😄
+                `;
+
+            }
+
+
+            if (
+                text.includes("thank") ||
+                text.includes("thanks")
+            ) {
+
+                return "😊 You're welcome! I'm always happy to help.";
+
+            }
+
+
+            if (
+                text.includes("bye") ||
+                text.includes("goodbye")
+            ) {
+
+                return "👋 Goodbye! Have a great day!";
+
+            }
+
+
+            return `
+                🤔 That's an interesting question!
+                <br><br>
+                I am currently a simple chatbot. Try asking me about
+                <b>AI, HTML, CSS, JavaScript, Python or GitHub Pages.</b>
+            `;
+
+        }
+
+
+        // Clear chat
+        function clearChat() {
+
+            chatBox.innerHTML = `
+                <div class="message bot">
+                    <div class="message-content">
+                        👋 Chat cleared!
+                        <br><br>
+                        How can I help you?
+                        <span class="time">Now</span>
+                    </div>
+                </div>
+
+                <div class="typing" id="typing">
+                    <div class="message-content">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            `;
+
+            // Update typing element
+            window.typing = document.getElementById("typing");
+
+        }
+
+    </script>
+
 </body>
 </html>
+```
