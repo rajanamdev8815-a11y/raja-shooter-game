@@ -1,0 +1,78 @@
+
+
+GPT OSS 20B
+⚙
+☼
+👤
+You
+6666+6666
+
+✚
+Nova Medical AI
+6666 + 6666 = 13,332
+
+▢ Copy
+👤
+You
+gamechess ka code de do
+
+✚
+Nova Medical AI
+नीचे एक सरल Python‑आधारित शतरंज (Chess) खेल का कोड दिया गया है।
+यह कोड python-chess लाइब्रेरी का उपयोग करता है, जिसे आप पहले इंस्टॉल कर सकते हैं:
+
+pip install python-chess
+कोड में एक बुनियादी कंसोल‑आधारित इंटरफ़ेस है, जहाँ आप चालें e2e4, g1f3 आदि के फॉर्मेट में दर्ज कर सकते हैं।
+यह कोड शतरंज के नियमों को लागू करता है, चालों की वैधता की जाँच करता है, और खेल के समाप्त होने पर विजेता या ड्रॉ घोषित करता है।
+
+# chess_game.py
+import chess
+import chess.engine
+def print_board(board):
+    """कंसोल में बोर्ड को सुंदर तरीके से दिखाएँ।"""
+    print("\n  a b c d e f g h")
+    for rank in range(8, 0, -1):
+        row = f"{rank} "
+        for file in range(1, 9):
+            square = chess.square(file - 1, rank - 1)
+            piece = board.piece_at(square)
+            row += (piece.symbol() if piece else ".") + " "
+        print(row + f"{rank}")
+    print("  a b c d e f g h\n")
+
+def main():
+    board = chess.Board()
+    print("स्वागत है Chess Game में!")
+    print("चालें दर्ज करने के लिए 'e2e4' या 'g1f3' जैसे फॉर्मेट का उपयोग करें।")
+    print("खेल समाप्त करने के लिए 'quit' टाइप करें।\n")
+
+    while not board.is_game_over():
+        print_board(board)
+        move_input = input(f"{'White' if board.turn else 'Black'} की चाल: ").strip()
+
+        if move_input.lower() == "quit":
+            print("खेल समाप्त किया गया।")
+            break
+
+        try:
+            move = chess.Move.from_uci(move_input)
+            if move in board.legal_moves:
+                board.push(move)
+            else:
+                print("अमान्य चाल! कृपया फिर से प्रयास करें।")
+        except ValueError:
+            print("चाल का फॉर्मेट गलत है। उदाहरण: e2e4")
+            continue
+
+    # खेल समाप्त होने पर परिणाम दिखाएँ
+    print_board(board)
+    result = board.result()
+    if result == "1-0":
+        print("सफेद विजयी!")
+    elif result == "0-1":
+        print("काला विजयी!")
+    else:
+        print("ड्रॉ!")
+
+if __name__ == "__main__":
+    main()
